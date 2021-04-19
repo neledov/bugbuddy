@@ -22,8 +22,6 @@ def gettitle(bugid):
         final.insert(0, " - Oops! No information avaliable externally")
     else:
         final = list(filter(None, title))
-        print final[0]
-    print "gettitle"
     return final[0]
 
 
@@ -34,14 +32,11 @@ def fstr(sourcelist):
 def findingoogle(usertext):
     search = re.compile(r'(?=CSC[\S\s]).{10}', re.MULTILINE)
     a = standard_search.search("""Cisco Bug """ + usertext )
-    print a
     answer = re.findall(search, fstr(a))
     if answer:
         ##answer.insert(0, "*Possible bugs for your request* : ")
-        print answer
     else:
         answer.insert(0, "Nothing found, please be more exact")
-    print "findingoogle"
     return answer[:10]
 
 
@@ -57,7 +52,6 @@ def getdescr(bugid):
     if not symptom:
         final.insert(0, "No information avaliable")
     else:
-        print "bug found " + bugid
         symptom.insert(0, "Title : " + title[0])
         symptom.insert(1, "Quickview URL : https://quickview.cloudapps.cisco.com/quickview/bug/" + bugid)
         symptom.insert(2,
@@ -66,8 +60,6 @@ def getdescr(bugid):
         condition.insert(0, "Condition :")
         result = symptom + condition
         final = list(filter(None, result))
-        print "getdescr"
-        print final
     return final
 
 updater = Updater(token='545637489:AAHnsdp3vUEg_s71CK3RavN5e351Hm8VB0Q')  # Токен API к Telegram
