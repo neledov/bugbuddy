@@ -3,7 +3,7 @@
 
 import re
 import requests
-from google import google
+from googlesearch import search
 from flask import Flask, jsonify
 from flask_restful import Api, Resource, reqparse
 
@@ -11,68 +11,69 @@ app = Flask(__name__)
 api = Api(app)
 
 
-class bug(Resource):
+class DefectResource(Resource):
     def get(self, description_text):
         description_text = description_text.replace('description_text=', '')
-        a = findingoogle(description_text.replace('%20', '* '))
-        a = list(dict.fromkeys(a))
-        my_new_list = [
-            '[' + x + "](" + "https://quickview.cloudapps.cisco.com/quickview/bug/" + x + ") : " + gettitle(x) + '&#13;'
-            for x in a]
-        return jsonify(my_new_list)
+        input_sanitized = list(dict.fromkeys(get_google_results(description_text.replace('%20', '* '))))
+        list_final = [
+            '[' + x + "](" + "https://quickview.cloudapps.cisco.com/quickview/bug/" + x + ") : " + get_defect_title(
+                x) + '&#13;'
+            for x in input_sanitized]
+        return jsonify(list_final)
 
 
-def gettitle(bugid):
-    page = requests.get("https://quickview.cloudapps.cisco.com/quickview/bug/" + bugid)
+def get_defect_title(bugid):
+    page_load_result = requests.get("https://quickview.cloudapps.cisco.com/quickview/bug/" + bugid)
 
-    retitle = re.compile(r'<title>Cisco Bug: .{13}([\S\s]*?)</title>', re.MULTILINE)
-    title = re.findall(retitle, page.text)
+    regexp_title = re.compile(r'<title>Cisco Bug: .{13}([\S\s]*?)</title>', re.MULTILINE)
+    result_title = re.findall(regexp_title, page_load_result.text)
     final = []
-    if not title:
-        final.insert(0, " - No information avaliable externally")
+    if not result_title:
+        final.insert(0, " - No information available externally")
     else:
-        final = list(filter(None, title))
+        final = list(filter(None, result_title))
     return final[0]
 
 
-def fstr(sourcelist):
-    return '\n'.join(str(p) for p in sourcelist)
+def list_to_lines(list_source):
+    return '\n'.join(str(p) for p in list_source)
 
 
-def findingoogle(usertext):
-    search = re.compile(r'(?=CSC[\S\s]).{10}', re.MULTILINE)
-    a = google.search("""Cisco Bug """ + usertext, 5)
-    answer = re.findall(search, fstr(a))
+def get_google_results(user_input):
+    regexp_search = re.compile(r'(?=CSC[\S\s]).{10}', re.MULTILINE)
+    a = search("""Cisco Bug """ + user_input, num_results=100)
+    answer = re.findall(regexp_search, list_to_lines(a))
     if answer:
-        ##answer.insert(0, "*Possible bugs for your request* : ")
-        print(answer)
+        # answer.insert(0, "*Possible bugs for your request* : ")
+        print(answer)  # for debugging purposes #TODO:remove
     else:
         answer.insert(0, "Nothing found, please be more exact")
-    return answer[:10]
+    return answer[:20]
 
 
-def getdescr(bugid):
-    page = requests.get("https://quickview.cloudapps.cisco.com/quickview/bug/" + bugid)
-    retitle = re.compile(r'<title>Cisco Bug: ([\S\s]*?)</title>', re.MULTILINE)
-    resymptom = re.compile(r'<B>Symptom:</B>([\S\s]*?)<B>Conditions:</B>', re.MULTILINE)
-    recondition = re.compile(r'<B>Conditions:</B>([\S\s]*?)</pre>', re.MULTILINE)
-    symptom = re.findall(resymptom, page.text)
-    condition = re.findall(recondition, page.text)
-    title = re.findall(retitle, page.text)
-    final = []
-    if not symptom:
-        final.insert(0, "No information avaliable")
+def get_defect_full_description(defect_id):
+    page = requests.get("https://quickview.cloudapps.cisco.com/quickview/bug/" + defect_id)
+    regexp_title = re.compile(r'<title>Cisco Bug: ([\S\s]*?)</title>', re.MULTILINE)
+    regexp_symptom = re.compile(r'<B>Symptom:</B>([\S\s]*?)<B>Conditions:</B>', re.MULTILINE)
+    regexp_condition = re.compile(r'<B>Conditions:</B>([\S\s]*?)</pre>', re.MULTILINE)
+    ##########################################################
+    result_title = re.findall(regexp_title, page.text)
+    result_symptom = re.findall(regexp_symptom, page.text)
+    result_condition = re.findall(regexp_condition, page.text)
+    result_full = []
+    if not result_symptom:
+        result_full.insert(0, "No information available")
     else:
-        symptom.insert(0, "Title : " + title[0])
-        symptom.insert(1, "Quickview URL : https://quickview.cloudapps.cisco.com/quickview/bug/" + bugid)
-        symptom.insert(2,
-                       "Symptoms of " + bugid + " :")
+        result_symptom.insert(0, "Title : " + result_title[0])
+        result_symptom.insert(1, "Quickview URL : https://quickview.cloudapps.cisco.com/quickview/bug/" + defect_id)
+        result_symptom.insert(2,
+                              "Symptoms of " + defect_id + " :")
 
-        condition.insert(0, "Condition :")
-        result = symptom + condition
-        final = list(filter(None, result))
-    return final
+        result_condition.insert(0, "Condition :")
+        result = result_symptom + result_condition
+        result_full = list(filter(None, result))
+    return result_full
 
 
-api.add_resource(bug, "/bug/<string:description_text>")
+api.add_resource(DefectResource, "/bug/<string:description_text>")
 app.run(host='0.0.0.0', debug=True)
