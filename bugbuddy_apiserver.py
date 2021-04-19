@@ -27,12 +27,12 @@ def get_defect_title(defect_id):
 
     regexp_title = re.compile(r'<title>Cisco Bug: .{13}([\S\s]*?)</title>', re.MULTILINE)
     result_title = re.findall(regexp_title, page_load_result.text)
-    final = []
+    result_final = []
     if not result_title:
-        final.insert(0, " - No information available externally")
+        result_final.insert(0, " - No information available externally")
     else:
-        final = list(filter(None, result_title))
-    return final[0]
+        result_final= list(filter(None, result_title))
+    return result_final[0]
 
 
 def list_to_lines(list_source):
@@ -41,14 +41,14 @@ def list_to_lines(list_source):
 
 def get_google_results(user_input):
     regexp_search = re.compile(r'(?=CSC[\S\s]).{10}', re.MULTILINE)
-    a = search("""Cisco Bug """ + user_input, num_results=100)
-    answer = re.findall(regexp_search, list_to_lines(a))
-    if answer:
+    result_search = search("""Cisco Bug """ + user_input, num_results=100)
+    result_final = re.findall(regexp_search, list_to_lines(result_search))
+    if result_final:
         # answer.insert(0, "*Possible bugs for your request* : ")
-        print(answer)  # for debugging purposes #TODO:remove
+        print(result_final)  # for debugging purposes #TODO:remove
     else:
-        answer.insert(0, "Nothing found, please be more exact")
-    return answer[:20]
+        result_final.insert(0, "Nothing found, please be more exact")
+    return result_final[:20]
 
 
 def get_defect_full_description(defect_id):
