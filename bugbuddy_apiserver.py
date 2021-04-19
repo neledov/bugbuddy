@@ -12,9 +12,8 @@ api = Api(app)
 
 
 class DefectResource(Resource):
-    def get(self, description_text):
-        description_text = description_text.replace('description_text=', '')
-        input_sanitized = list(dict.fromkeys(get_google_results(description_text.replace('%20', '* '))))
+    def get(self, input_search_string):
+        input_sanitized = list(dict.fromkeys(get_google_results(input_search_string.replace('%20', '* '))))
         list_final = [
             '[' + x + "](" + "https://quickview.cloudapps.cisco.com/quickview/bug/" + x + ") : " + get_defect_title(
                 x) + '&#13;'
@@ -31,7 +30,7 @@ def get_defect_title(defect_id):
     if not result_title:
         result_final.insert(0, " - No information available externally")
     else:
-        result_final= list(filter(None, result_title))
+        result_final = list(filter(None, result_title))
     return result_final[0]
 
 
@@ -43,12 +42,9 @@ def get_google_results(user_input):
     regexp_search = re.compile(r'(?=CSC[\S\s]).{10}', re.MULTILINE)
     result_search = search("""Cisco Bug """ + user_input, num_results=100)
     result_final = re.findall(regexp_search, list_to_lines(result_search))
-    if result_final:
-        # answer.insert(0, "*Possible bugs for your request* : ")
-        print(result_final)  # for debugging purposes #TODO:remove
-    else:
+    if not result_final:
         result_final.insert(0, "Nothing found, please be more exact")
-    return result_final[:20]
+    return result_final[:50]
 
 
 def get_defect_full_description(defect_id):
@@ -75,5 +71,5 @@ def get_defect_full_description(defect_id):
     return result_full
 
 
-api.add_resource(DefectResource, "/bug/<string:description_text>")
+api.add_resource(DefectResource, "/defect/<string:input_search_string>")
 app.run(host='0.0.0.0', debug=True)
