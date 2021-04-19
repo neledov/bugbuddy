@@ -5,7 +5,7 @@ import re
 import requests
 from googlesearch import search
 from flask import Flask, jsonify
-from flask_restful import Api, Resource, reqparse
+from flask_restful import Api, Resource
 
 app = Flask(__name__)
 api = Api(app)
