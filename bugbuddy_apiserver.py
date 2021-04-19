@@ -43,7 +43,7 @@ class InfoResource(Resource):
             result_condition.insert(0, "Condition :")
             result = result_symptom + result_condition
             result_full = list(filter(None, result))
-        return result_full
+        return jsonify(result_full)
 
 
 def get_defect_title(defect_id):
