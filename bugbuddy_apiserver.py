@@ -22,8 +22,8 @@ class DefectResource(Resource):
         return jsonify(list_final)
 
 
-def get_defect_title(bugid):
-    page_load_result = requests.get("https://quickview.cloudapps.cisco.com/quickview/bug/" + bugid)
+def get_defect_title(defect_id):
+    page_load_result = requests.get("https://quickview.cloudapps.cisco.com/quickview/bug/" + defect_id)
 
     regexp_title = re.compile(r'<title>Cisco Bug: .{13}([\S\s]*?)</title>', re.MULTILINE)
     result_title = re.findall(regexp_title, page_load_result.text)
