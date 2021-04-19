@@ -21,6 +21,31 @@ class DefectResource(Resource):
         return jsonify(list_final)
 
 
+class InfoResource(Resource):
+    def get(self, defect_id):
+        page = requests.get("https://quickview.cloudapps.cisco.com/quickview/bug/" + defect_id)
+        regexp_title = re.compile(r'<title>Cisco Bug: ([\S\s]*?)</title>', re.MULTILINE)
+        regexp_symptom = re.compile(r'<B>Symptom:</B>([\S\s]*?)<B>Conditions:</B>', re.MULTILINE)
+        regexp_condition = re.compile(r'<B>Conditions:</B>([\S\s]*?)</pre>', re.MULTILINE)
+        ##########################################################
+        result_title = re.findall(regexp_title, page.text)
+        result_symptom = re.findall(regexp_symptom, page.text)
+        result_condition = re.findall(regexp_condition, page.text)
+        result_full = []
+        if not result_symptom:
+            result_full.insert(0, "No information available")
+        else:
+            result_symptom.insert(0, "Title : " + result_title[0])
+            result_symptom.insert(1, "Quickview URL : https://quickview.cloudapps.cisco.com/quickview/bug/" + defect_id)
+            result_symptom.insert(2,
+                                  "Symptoms of " + defect_id + " :")
+
+            result_condition.insert(0, "Condition :")
+            result = result_symptom + result_condition
+            result_full = list(filter(None, result))
+        return result_full
+
+
 def get_defect_title(defect_id):
     page_load_result = requests.get("https://quickview.cloudapps.cisco.com/quickview/bug/" + defect_id)
 
@@ -47,29 +72,6 @@ def get_google_results(user_input):
     return result_final[:50]
 
 
-def get_defect_full_description(defect_id):
-    page = requests.get("https://quickview.cloudapps.cisco.com/quickview/bug/" + defect_id)
-    regexp_title = re.compile(r'<title>Cisco Bug: ([\S\s]*?)</title>', re.MULTILINE)
-    regexp_symptom = re.compile(r'<B>Symptom:</B>([\S\s]*?)<B>Conditions:</B>', re.MULTILINE)
-    regexp_condition = re.compile(r'<B>Conditions:</B>([\S\s]*?)</pre>', re.MULTILINE)
-    ##########################################################
-    result_title = re.findall(regexp_title, page.text)
-    result_symptom = re.findall(regexp_symptom, page.text)
-    result_condition = re.findall(regexp_condition, page.text)
-    result_full = []
-    if not result_symptom:
-        result_full.insert(0, "No information available")
-    else:
-        result_symptom.insert(0, "Title : " + result_title[0])
-        result_symptom.insert(1, "Quickview URL : https://quickview.cloudapps.cisco.com/quickview/bug/" + defect_id)
-        result_symptom.insert(2,
-                              "Symptoms of " + defect_id + " :")
-
-        result_condition.insert(0, "Condition :")
-        result = result_symptom + result_condition
-        result_full = list(filter(None, result))
-    return result_full
-
-
 api.add_resource(DefectResource, "/defect/<string:input_search_string>")
+api.add_resource(InfoResource, "/defect/info/<string:defect_id>")
 app.run(host='0.0.0.0', debug=True)
