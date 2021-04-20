@@ -13,7 +13,8 @@ api = Api(app)
 
 def google_search(term, num_results=10, lang="en"):
     usr_agent = {
-        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/5312 (KHTML, like Gecko) Chrome/40.0.875.0 Mobile Safari/5312'}
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                      'Chrome/61.0.3163.100 Safari/537.36'}
     usr_agent_list = {}  # TODO: add user agent randomization to avoid to be google blocked
 
     def fetch_results(search_term, number_results, language_code):
@@ -23,7 +24,7 @@ def google_search(term, num_results=10, lang="en"):
                                                                               language_code)
         response = get(google_url, headers=usr_agent)
         response.raise_for_status()
-
+        print(response.text)
         return response.text
 
     def parse_results(raw_html):
@@ -100,6 +101,7 @@ def get_google_results(user_input):
     result_final = re.findall(regexp_search, list_to_lines(result_search))
     if not result_final:
         result_final.insert(0, "Nothing found, please be more exact")
+    print(result_final)
     return result_final[:50]
 
 
