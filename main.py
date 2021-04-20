@@ -49,7 +49,7 @@ def get_defects():
     return jsonify(list_final)
 
 
-@app.route('/defect/description ', methods=['GET'])
+@app.route('/defect/description', methods=['GET'])
 def get_defect_description():
     defect_id = request.args.get('defect_id')
     page = get("https://quickview.cloudapps.cisco.com/quickview/bug/{}".format(defect_id),
@@ -68,8 +68,7 @@ def get_defect_description():
         result_symptom.insert(0, "Title : {}".format(result_title[0]))
         result_symptom.insert(1, "Quickview URL : https://quickview.cloudapps.cisco.com/quickview/bug/{}".format(defect_id))
         result_symptom.insert(2,
-                              "Symptoms of " + defect_id + " :")
-
+                              "Symptoms of {} :".format(defect_id))
         result_condition.insert(0, "Condition :")
         result = result_symptom + result_condition
         result_full = list(filter(None, result))
@@ -77,8 +76,7 @@ def get_defect_description():
 
 
 def get_defect_title(defect_id):
-    page_load_result = get("https://quickview.cloudapps.cisco.com/quickview/bug/{}".format(defect_id),
-                           headers={'User-agent': 'Chrome/90.0.4430.72'})
+    page_load_result = get("https://quickview.cloudapps.cisco.com/quickview/bug/{}".format(defect_id))
 
     regexp_title = re.compile(r'<title>Cisco Bug: .{13}([\S\s]*?)</title>', re.MULTILINE)
     result_title = re.findall(regexp_title, page_load_result.text)
