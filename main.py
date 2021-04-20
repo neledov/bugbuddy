@@ -24,7 +24,6 @@ def google_search(term, num_results=10, lang="en"):
                                                                               language_code)
         response = get(google_url, headers=usr_agent)
         response.raise_for_status()
-        print(response.text)
         return response.text
 
     def parse_results(raw_html):
@@ -45,7 +44,7 @@ def get_defects():
     input_search_string = request.args.get('err_msg')
     input_sanitized = list(dict.fromkeys(get_google_results(input_search_string.replace('%20', '* '))))
     list_final = [
-        '[{}]("https://quickview.cloudapps.cisco.com/quickview/bug/{}) : {}&#13;'.format(x, x, get_defect_title(x)) for
+        '[{}]("https://quickview.cloudapps.cisco.com/quickview/bug/{}) : {}'.format(x, x, get_defect_title(x)) for
         x in input_sanitized]
     return jsonify(list_final)
 
@@ -66,8 +65,8 @@ def get_defect_description():
     if not result_symptom:
         result_full.insert(0, "No information available")
     else:
-        result_symptom.insert(0, "Title : " + result_title[0])
-        result_symptom.insert(1, "Quickview URL : https://quickview.cloudapps.cisco.com/quickview/bug/" + defect_id)
+        result_symptom.insert(0, "Title : {}".format(result_title[0]))
+        result_symptom.insert(1, "Quickview URL : https://quickview.cloudapps.cisco.com/quickview/bug/{}".format(defect_id))
         result_symptom.insert(2,
                               "Symptoms of " + defect_id + " :")
 
@@ -78,7 +77,7 @@ def get_defect_description():
 
 
 def get_defect_title(defect_id):
-    page_load_result = get("https://quickview.cloudapps.cisco.com/quickview/bug/" + defect_id,
+    page_load_result = get("https://quickview.cloudapps.cisco.com/quickview/bug/{}".format(defect_id),
                            headers={'User-agent': 'Chrome/90.0.4430.72'})
 
     regexp_title = re.compile(r'<title>Cisco Bug: .{13}([\S\s]*?)</title>', re.MULTILINE)
@@ -101,7 +100,6 @@ def get_google_results(user_input):
     result_final = re.findall(regexp_search, list_to_lines(result_search))
     if not result_final:
         result_final.insert(0, "Nothing found, please be more exact")
-    print(result_final)
     return result_final[:50]
 
 
