@@ -1,21 +1,29 @@
 #!/usr/bin/env python
 # -*- coding: utf8 -*-
-
+import random
 import re
 from requests import get
 from bs4 import BeautifulSoup
 from flask import Flask, jsonify, request
 from flask_restful import Api
+from pathlib import Path
 
 app = Flask(__name__)
 api = Api(app)
 
+# initializing of User-Agent list to avoid being blocked by google
+user_agent_file_check = Path("config/user-agents.conf")
+if user_agent_file_check.is_file():
+    with open('config/user-agents.conf') as file:
+        usr_agent_list = file.readlines()
+        random_seed_size = len(usr_agent_list)
+else:
+    usr_agent_list = {
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.85 Safari/537.36'}
+
 
 def google_search(term, num_results=10, lang="en"):
-    usr_agent = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
-                      'Chrome/61.0.3163.100 Safari/537.36'}
-    usr_agent_list = {}  # TODO: add user agent randomization to avoid to be google blocked
+    usr_agent = {'User-Agent': usr_agent_list[random.randint(1, random_seed_size)].rstrip('\n')}
 
     def fetch_results(search_term, number_results, language_code):
         escaped_search_term = search_term.replace(' ', '+')
@@ -66,7 +74,8 @@ def get_defect_description():
         result_full.insert(0, "No information available")
     else:
         result_symptom.insert(0, "Title : {}".format(result_title[0]))
-        result_symptom.insert(1, "Quickview URL : https://quickview.cloudapps.cisco.com/quickview/bug/{}".format(defect_id))
+        result_symptom.insert(1, "Quickview URL : https://quickview.cloudapps.cisco.com/quickview/bug/{}".format(
+            defect_id))
         result_symptom.insert(2,
                               "Symptoms of {} :".format(defect_id))
         result_condition.insert(0, "Condition :")
